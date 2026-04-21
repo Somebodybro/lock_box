@@ -25,7 +25,7 @@ jobs:
             - name: ArduinoECCX08
             - name: crypto
               local-path: ./Arduino/libraries/crypto
-          sketch-paths: ./Arduino/
+          sketch-paths: ./Arduino/lock_box/
   Check_app:
     runs-on: ubuntu-latest
     steps:
