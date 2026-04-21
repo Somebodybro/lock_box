@@ -281,9 +281,9 @@ void printWEB()
                 sha256.finalize(key, 32);
                 sha256.clear();
                 Serial.println("");
-                for (unsigned int i = 0; i <= HASH_SIZE; i++)
+                for (unsigned int i = 0; i < HASH_SIZE; i++)
                 {
-                    // There is a slim chanche we might be able to
+                    // There is a slim chance we might be able to
                     // save on writing. Yes there is a small performance cost
                     // but it's fine.
                     EEPROM.update(i + EEPROMOffset + 1, key[i]);
