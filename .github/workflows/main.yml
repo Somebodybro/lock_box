@@ -36,4 +36,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm install -g eas-cli
+      - name: Change wrapper permissions
+        run: cd android && chmod +x ./gradlew
       - run: npm run build
