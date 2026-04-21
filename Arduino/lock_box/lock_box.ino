@@ -218,7 +218,8 @@ void printWEB()
                 }
             }
         }
-        Serial.println(currentLine);
+        THIS WILL NOT COMPILE
+            Serial.println(currentLine);
         byte decoded[linesize / 2];
         for (unsigned int i = 0; i < linesize / 2; i++)
         {
