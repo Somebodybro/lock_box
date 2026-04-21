@@ -2,6 +2,7 @@
 Hello! This is a toy application that connects to an arduino wifi (code for that attached)
 and turns a light on/off. All communication uses a basic TCP port on both devices
 and encrypts all communication using the ChaCha20-Poly1305 algorithm for communication.
+
 The security depends on the keys being secure, but otherwise it is a pretty nice little
 showcase of arduino capabilities.
 It uses the inbuilt ECC chip for cryptographic random and is guite nice.
@@ -9,7 +10,8 @@ It uses the inbuilt ECC chip for cryptographic random and is guite nice.
 ## Why is this secure programming?
 I believe that analysing this implementations security in my report and
 showcasing arduino programming, (which needs to be memory secure as it's basically
-funky c++ code) I can get a decent grade. In the end the time limit kind of hit me (as always) so I couldn't implement everything I wanted. I might continue with this project later, if It strikes me.
+funky c++ code) I can get a decent grade. 
+In the end the time limit kind of hit me (as always) so I couldn't implement everything I wanted. I might continue with this project later, if It strikes me.
 
 ## Lock_box is a weird name for a fancy LED?
 Yeah... It simulates a "lock" in the sense that it has two modes, on and off. I was
@@ -18,15 +20,18 @@ supposed to actually wire a servo into a 3d printed box, but in the end I got to
 ## Can I use this myself?
 Yes I don't mind and the license speaks for itself, but even though this is for the "secure
 programming" course, I wouldn't consider this implementation secure.
+
 There is the possibility of sidechannel attacks, since I did not have time to make sure
 that all implementations are constant-time. And while I will have scripts to check the 
 update status of all packages and a "plan for updates", I will not be actually "maintaining"
 this toy repository so... Not actually very secure, but this repository can be considered
 abandoned on publish.
+
 There is also two big factors that make this less than ideal that I do not have time
 to fix. 1. I am using a simple sha-256 hash for derivating a key from a password with 
 _no salt_ bum bum bummm. This could be easily fixed, with time... That I don't have before
 the deadline. If I were to do it correctly I would use something like argon2id to derive the key with a salt that one could get unencrypted from the device.
+
 Then there is key rotation. While unlikely that one could send enough messages to approach a birthday limit on such a simple app, it is still technically pheasible with automation.
 If this was to be actually secure, there would need to be regular key rotation, which is trivial to implement... With time. Honestly it would even suffice to change to the extended nonce variant of chacha20-poly1305, but... That was not implemented in the library and once again, no time.
 
