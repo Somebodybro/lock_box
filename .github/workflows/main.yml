@@ -23,7 +23,8 @@ jobs:
             - name: FastLED
             - name: WiFiNINA
             - name: ArduinoECCX08
-            - local-path: ./Arduino device code/libraries/crypto
+            - name: crypto
+              local-path: ./Arduino device code/libraries/crypto
           sketch-paths: Arduino device code
   Check_app:
     runs-on: ubuntu-latest
