@@ -74,15 +74,19 @@ void setup()
             ;
     }
 
-    int i = 0;
-
     byte c = EEPROM.read(EEPROMOffset);
     // If the first byte is 1
     if (c == 0x01)
     {
         Serial.println("Retrieving key from memory");
         byte inStorKey[HASH_SIZE];
-        for (int i = 1; i <= HASH_SIZE; i++)
+        // Hahaa! Secure programming achieved.
+        // I had made an off by one error here and it was
+        // caught by arduino github actions.
+        // Marvel at my big brain and secure attitudes for
+        // taking the time to set that up.
+
+        for (unsigned int i = 0; i < HASH_SIZE; i++)
         {
             c = EEPROM.read(i + EEPROMOffset + 1);
             inStorKey[i] = (byte)c;
@@ -94,7 +98,7 @@ void setup()
         char keyIn[15];
         memcpy(keyIn, ConnectionSecret, sizeof(keyIn));
         byte asCodes[sizeof(ConnectionSecret) - 1];
-        for (int i = 0; i < sizeof(ConnectionSecret) - 1; i++)
+        for (unsigned int i = 0; i < sizeof(ConnectionSecret) - 1; i++)
         {
             asCodes[i] = (int)ConnectionSecret[i];
         }
@@ -177,7 +181,6 @@ void connect_WiFi()
 
 void printWEB()
 {
-    bool wantsPub = false;
     if (client)
     {                                 // if you get a client,
         Serial.println("new client"); // print a message out the serial port
@@ -217,7 +220,7 @@ void printWEB()
         }
         Serial.println(currentLine);
         byte decoded[linesize / 2];
-        for (char i = 0; i < linesize / 2; i++)
+        for (unsigned int i = 0; i < linesize / 2; i++)
         {
             byte extract = 0;
             char a = currentLine[2 * i];
@@ -227,7 +230,7 @@ void printWEB()
         }
 
         Serial.print("Decoded as ints: ");
-        for (int i = 0; i < sizeof(decoded); i++)
+        for (unsigned int i = 0; i < sizeof(decoded); i++)
         {
             Serial.print(byte(decoded[i]));
         }
@@ -235,7 +238,7 @@ void printWEB()
         String message = decryptCommand(&cha, decoded, linesize / 2);
         // String messageStr = "";
         // Serial.print("decrypted when converted: ");
-        // for (int i = 0; i < linesize/2;i++) {
+        // for (unsigned int i = 0; i < linesize/2;i++) {
         //  Serial.print(char(message[i]));
         // messageStr = messageStr+ char(message[i]);
         //}
@@ -268,9 +271,8 @@ void printWEB()
             else
             {
                 message.remove(0, 5);
-                char keyIn[15];
                 byte asCodes[message.length()];
-                for (int i = 0; i < message.length(); i++)
+                for (unsigned int i = 0; i < message.length(); i++)
                 {
                     asCodes[i] = (int)message[i];
                 }
@@ -279,9 +281,8 @@ void printWEB()
                 sha256.finalize(key, 32);
                 sha256.clear();
                 Serial.println("");
-                for (int i = 0; i <= HASH_SIZE; i++)
+                for (unsigned int i = 0; i <= HASH_SIZE; i++)
                 {
-                    byte c = EEPROM.read(EEPROMOffset);
                     // There is a slim chanche we might be able to
                     // save on writing. Yes there is a small performance cost
                     // but it's fine.
@@ -306,10 +307,10 @@ void printWEB()
 // not exposing information through ciphertext length
 void SendNok()
 {
-    byte anwser[2] = "nk";
+    byte anwser[3] = "nk";
     byte encrypted[2 + NONCE_SIZE + TAG_SIZE];
     encryptAnwser(&cha, encrypted, anwser, 2);
-    for (int i = 0; i < 2 + NONCE_SIZE + TAG_SIZE; i++)
+    for (unsigned int i = 0; i < 2 + NONCE_SIZE + TAG_SIZE; i++)
     {
         if (encrypted[i] < 16)
         {
@@ -321,10 +322,10 @@ void SendNok()
 
 void SendOk()
 {
-    byte anwser[2] = "ok";
+    byte anwser[3] = "ok";
     byte encrypted[2 + NONCE_SIZE + TAG_SIZE];
     encryptAnwser(&cha, encrypted, anwser, 2);
-    for (int i = 0; i < 2 + NONCE_SIZE + TAG_SIZE; i++)
+    for (unsigned int i = 0; i < 2 + NONCE_SIZE + TAG_SIZE; i++)
     {
         if (encrypted[i] < 16)
         {
@@ -345,11 +346,11 @@ String decryptCommand(ChaChaPoly *cipher, byte *cipherText, size_t size)
         Serial.println("Too small cipher. Aborting");
         return messageStr;
     }
-    for (int i = 0; i < NONCE_SIZE; i++)
+    for (unsigned int i = 0; i < NONCE_SIZE; i++)
     {
         nonce[i] = cipherText[i];
     }
-    for (int i = NONCE_SIZE; i < NONCE_SIZE + TAG_SIZE; i++)
+    for (unsigned int i = NONCE_SIZE; i < NONCE_SIZE + TAG_SIZE; i++)
     {
         tag[i - NONCE_SIZE] = cipherText[i];
     }
@@ -367,7 +368,7 @@ String decryptCommand(ChaChaPoly *cipher, byte *cipherText, size_t size)
     }
     size_t msgSize = size - NONCE_SIZE - TAG_SIZE;
     byte actualMsg[msgSize];
-    for (int i = NONCE_SIZE + TAG_SIZE; i < size; i++)
+    for (unsigned int i = NONCE_SIZE + TAG_SIZE; i < size; i++)
     {
         actualMsg[i - NONCE_SIZE - TAG_SIZE] = cipherText[i];
     }
@@ -379,7 +380,7 @@ String decryptCommand(ChaChaPoly *cipher, byte *cipherText, size_t size)
         Serial.println("Authenticating cipher text failed");
         return "";
     }
-    for (int i = 0; i < msgSize; i++)
+    for (unsigned int i = 0; i < msgSize; i++)
     {
         messageStr += (char)actualMsg[i];
     }
@@ -399,18 +400,18 @@ void encryptAnwser(ChaChaPoly *cipher, byte *output, byte *plaintext, size_t siz
     if (!cipher->setKey(key, HASH_SIZE))
     {
         Serial.print("setKey failed");
-        return "";
+        return;
     }
     if (!cipher->setIV(nonce, NONCE_SIZE))
     {
         Serial.print("setIV Failed");
-        return "";
+        return;
     }
 
     cipher->encrypt(cipherText, plaintext, size);
     cipher->computeTag(tag, sizeof(tag));
 
-    for (int i = 0; i < TAG_SIZE + NONCE_SIZE + size; i++)
+    for (unsigned int i = 0; i < TAG_SIZE + NONCE_SIZE + size; i++)
     {
         if (i < NONCE_SIZE)
         {
@@ -429,7 +430,6 @@ void encryptAnwser(ChaChaPoly *cipher, byte *output, byte *plaintext, size_t siz
 
 byte convertCharToHex(char ch)
 {
-    byte returnType;
     ch = toupper(ch);
     switch (ch)
     {

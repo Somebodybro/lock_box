@@ -4,7 +4,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-run-name: pr Checks
+run-name: Master changed
 jobs:
   Check-Arduino:
     runs-on: ubuntu-latest
