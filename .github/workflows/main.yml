@@ -15,7 +15,7 @@ jobs:
           library-manager: false
           compliance: strict
           project-type: sketch
-          path: ./Arduino device code/lock_box/
+          path: ./Arduino/lock_box/
       - uses: arduino/compile-sketches@v1.1.2
         with:
           fqbn: arduino:megaavr:uno2018
@@ -24,8 +24,8 @@ jobs:
             - name: WiFiNINA
             - name: ArduinoECCX08
             - name: crypto
-              local-path: ./Arduino device code/libraries/crypto
-          sketch-paths: Arduino device code
+              local-path: ./Arduino/libraries/crypto
+          sketch-paths: ./Arduino/
   Check_app:
     runs-on: ubuntu-latest
     steps:
