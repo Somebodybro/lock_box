@@ -1,0 +1,39 @@
+name: on pr and push
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+run-name: pr from {{github.actor}}
+jobs:
+  Check-Arduino:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: arduino/arduino-lint-action@v2.0.0
+      with:
+        library-manager: false
+        compliance: strict
+        project-type: sketch
+        path: ./Arduino device code/lock_box.ino
+    - uses: arduino/compile-sketches@v1.1.2
+      with:
+        fqbn: "arduino:megaavr:uno2018"
+        libraries: |
+          - name: FastLED
+          - name: WiFiNINA
+          - name: ArduinoECCX08
+        sketch-paths:
+          - Arduino device code
+  Check app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use node.js 24
+        uses: actions/setup-node@v4
+        withs:
+          node-version: 24.x
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
