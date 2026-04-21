@@ -18,11 +18,12 @@ jobs:
           path: ./Arduino device code/lock_box/
       - uses: arduino/compile-sketches@v1.1.2
         with:
-          fqbn: "arduino:megaavr:uno2018"
+          fqbn: arduino:megaavr:uno2018
           libraries: |
             - name: FastLED
             - name: WiFiNINA
             - name: ArduinoECCX08
+            - local-path: ./Arduino device code/libraries/crypto
           sketch-paths: Arduino device code
   Check_app:
     runs-on: ubuntu-latest
