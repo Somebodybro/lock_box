@@ -4,7 +4,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-run-name: pr from {{github.actor}}
+run-name: pr Checks
 jobs:
   Check-Arduino:
     runs-on: ubuntu-latest
@@ -15,7 +15,7 @@ jobs:
           library-manager: false
           compliance: strict
           project-type: sketch
-          path: ./Arduino device code/lock_box.ino
+          path: ./Arduino device code/lock_box/
       - uses: arduino/compile-sketches@v1.1.2
         with:
           fqbn: "arduino:megaavr:uno2018"
