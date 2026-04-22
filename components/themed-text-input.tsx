@@ -19,6 +19,7 @@ export function ThemedTextInput({
     <TextInput
       style={[
         { color },
+        style
       ]}
       {...rest}
     />

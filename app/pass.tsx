@@ -128,7 +128,9 @@ const styles = StyleSheet.create({
    input: {
     height: 40,
     margin: 12,
-    borderWidth: 1,
+    borderColor: '#000000',
+    borderStyle: 'solid',
+    borderWidth: 2,
     padding: 10,
   },
 });
