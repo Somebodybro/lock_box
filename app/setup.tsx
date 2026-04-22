@@ -108,7 +108,6 @@ export default function SetupScreen() {
                 }
                 const secretBuff = cryptBuffer.from(SecretAsAscii)
                 const key = await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, secretBuff)
-                console.log('key: ', key)
                 const res = await SendChangePass(ip, newPass, key)
                 if (res === "nk") {
                    SetErrMessage('Invalid pass! Choose a better one.')
@@ -121,9 +120,6 @@ export default function SetupScreen() {
                   }
                   const secretBuff2 = cryptBuffer.from(SecretAsAscii2)
                   const key2 = await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, secretBuff2)
-                  console.log('secretBuff2', secretBuff2)
-                   console.log('newPass: ', newPass)
-                  console.log('key2: ', cryptBuffer.from(key2))
                   SecureStore.setItem(IpKey, ip)
                   cntxt.setEncKey(key2)
                   router.replace('main')
