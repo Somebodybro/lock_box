@@ -1,6 +1,6 @@
 
 import * as Crypto from 'expo-crypto';
-import { createCipheriv, createDecipheriv, Buffer as cryptBuffer, randomBytes } from 'react-native-quick-crypto';
+import { createCipheriv, createDecipheriv, Buffer as cryptBuffer } from 'react-native-quick-crypto';
 import TcpSockets from 'react-native-tcp-socket';
 
 export function SendMessage(ip:string, message:string, key:ArrayBuffer): Promise<string> {
@@ -12,8 +12,8 @@ export function SendMessage(ip:string, message:string, key:ArrayBuffer): Promise
         host: ip,
         reuseAddress: true
     }
-    return new Promise<string>((resolve, reject) => {
-        const nonce = cryptBuffer.from(randomBytes(12))
+    return new Promise<string>(async (resolve, reject) => {
+        const nonce = await SendZeroes(ip);
         const cipher = createCipheriv('chacha20-poly1305', key, nonce)
         const updated = cipher.update(cryptBuffer.from(message, 'ascii'))
         const final = cipher.final()
@@ -70,7 +70,38 @@ export function SendMessage(ip:string, message:string, key:ArrayBuffer): Promise
     })
     
 }
+// The application returns tally of nonce when zeroes are sent
+export function SendZeroes(ip:string): Promise<cryptBuffer> {
+    const buffer:string[] = [];
+    let inUse = false
+    const options = {
+        port: 80,
+        host: ip,
+        reuseAddress: true
+    }
+    return new Promise<cryptBuffer>((resolve, reject) => {
+        const client = TcpSockets.createConnection(options, ()=> {
+            client.write("00" + '\n');
+        })
+        client.on('data', (data) => {
+            const received = client.bytesRead
+            const buff = data as Buffer<ArrayBufferLike>
+            while(inUse) {
 
+            }
+            inUse = true
+            for(let i = 0; i < buff.length; i++) {
+            buffer[received-buff.length+i] = String.fromCharCode(buff.at(i) as number)
+            }
+            inUse = false
+        })
+        client.on('close', async ()=> {
+            const msg = buffer.join('')
+            const msgBuff = cryptBuffer.from(msg, 'hex')
+            resolve(msgBuff)
+        })
+    })
+}
 export function SendChangePass(ip:string, pass:string, key:ArrayBuffer): Promise<string> {
     const buffer:string[] = [];
     let inUse = false
@@ -79,8 +110,8 @@ export function SendChangePass(ip:string, pass:string, key:ArrayBuffer): Promise
         host: ip,
         reuseAddress: true
     }
-    return new Promise<string>((resolve, reject) => {
-        const nonce = cryptBuffer.from(randomBytes(12))
+    return new Promise<string>(async (resolve, reject) => {
+        const nonce = await SendZeroes(ip);
         const cipher = createCipheriv('chacha20-poly1305', key, nonce)
         const updated = cipher.update(cryptBuffer.from("CPass"+pass, 'ascii'))
         const final = cipher.final()

@@ -33,6 +33,7 @@ SHA256 sha256;
 #define HASH_SIZE 32
 ChaChaPoly cha;
 #define EEPROMOffset 1
+#define NonceOffset EEPROMOffset + 50
 byte key[HASH_SIZE];
 // This is simulating a default key that is put into all devices
 // due to this being a personal project, I put a default value here that I use
@@ -220,6 +221,7 @@ void printWEB()
         }
         Serial.println(currentLine);
         byte decoded[linesize / 2];
+        bool isZero = true;
         for (unsigned int i = 0; i < linesize / 2; i++)
         {
             byte extract = 0;
@@ -227,6 +229,10 @@ void printWEB()
             char b = currentLine[2 * i + 1];
             extract = convertCharToHex(a) << 4 | convertCharToHex(b);
             decoded[i] = extract;
+            if (extract != 0)
+            {
+                isZero = false;
+            }
         }
 
         Serial.print("Decoded as ints: ");
@@ -235,6 +241,27 @@ void printWEB()
             Serial.print(byte(decoded[i]));
         }
         Serial.println("");
+        if (isZero)
+        {
+            byte nonce[NONCE_SIZE] = {};
+            for (unsigned int i = 0; i < NONCE_SIZE; i++)
+            {
+                byte num = EEPROM.read(i + NonceOffset);
+                nonce[i] = num;
+            }
+            for (unsigned int i = 0; i < NONCE_SIZE; i++)
+            {
+                if (nonce[i] < 16)
+                {
+                    client.print(0);
+                }
+                client.print(nonce[i], 16);
+            }
+            delay(550);
+            client.stop();
+            Serial.println("Closed connection");
+            return;
+        }
         String message = decryptCommand(&cha, decoded, linesize / 2);
         // String messageStr = "";
         // Serial.print("decrypted when converted: ");
@@ -263,7 +290,7 @@ void printWEB()
 
         if (message.startsWith("CPass"))
         {
-            // We want a secret at least 10 chars for entropy
+            // We want a secret at least 15 chars for entropy
             if (message.length() < 15)
             {
                 SendNok();
@@ -350,6 +377,7 @@ String decryptCommand(ChaChaPoly *cipher, byte *cipherText, size_t size)
     {
         nonce[i] = cipherText[i];
     }
+
     for (unsigned int i = NONCE_SIZE; i < NONCE_SIZE + TAG_SIZE; i++)
     {
         tag[i - NONCE_SIZE] = cipherText[i];
@@ -380,6 +408,14 @@ String decryptCommand(ChaChaPoly *cipher, byte *cipherText, size_t size)
         Serial.println("Authenticating cipher text failed");
         return "";
     }
+
+    bool validN = CheckAndUpdateNonce(nonce);
+    if (!validN)
+    {
+        Serial.println("Nonce too small. Possible replay");
+        return "";
+    }
+
     for (unsigned int i = 0; i < msgSize; i++)
     {
         messageStr += (char)actualMsg[i];
@@ -389,13 +425,91 @@ String decryptCommand(ChaChaPoly *cipher, byte *cipherText, size_t size)
     return messageStr;
 }
 
+void getNonce(byte *output)
+{
+    byte nonce[NONCE_SIZE] = {};
+    Serial.println("");
+    for (unsigned int i = 0; i < NONCE_SIZE; i++)
+    {
+        byte num = EEPROM.read(i + NonceOffset);
+        output[i] = num;
+        nonce[i] = num;
+    }
+    bool validN = UppByteArray(nonce, NONCE_SIZE);
+    if (!validN)
+    {
+        Serial.print("Ran out of nonces. Key rotation in this case not implemented. Pausing app");
+        while (true)
+        {
+        }
+    }
+    for (unsigned int i = 0; i < NONCE_SIZE; i++)
+    {
+        EEPROM.update(i + NonceOffset, nonce[i]);
+    }
+}
+
+bool CheckAndUpdateNonce(byte *input)
+{
+    byte nonce[NONCE_SIZE] = {};
+    Serial.println("");
+    for (unsigned int i = 0; i < NONCE_SIZE; i++)
+    {
+        byte num = EEPROM.read(i + NonceOffset);
+        nonce[i] = num;
+    }
+    for (unsigned int i = 0; i < NONCE_SIZE; i++)
+    {
+        byte inputByte = input[i];
+        byte nonceByte = nonce[i];
+        if (inputByte > nonceByte)
+        {
+            break;
+        }
+        if (nonceByte > inputByte)
+        {
+            return false;
+        }
+    }
+    bool validN = UppByteArray(input, NONCE_SIZE);
+    if (!validN)
+    {
+        Serial.print("Ran out of nonces. Key rotation in this case not implemented. Pausing app");
+        while (true)
+        {
+        }
+    }
+    for (int i = 0; i < NONCE_SIZE; i++)
+    {
+        EEPROM.update(NonceOffset + i, input[i]);
+    }
+    return true;
+}
+// returns false if array rolls over
+bool UppByteArray(byte *input, size_t size)
+{
+    unsigned int lastIndex = size - 1;
+    while (lastIndex >= 0 && input[lastIndex] == 255)
+    {
+        input[lastIndex] = 0;
+        lastIndex = lastIndex - 1;
+    }
+    if (lastIndex == 0 && input[0] == 255)
+    {
+        input[0] = 0;
+        return false;
+    }
+    input[lastIndex] = input[lastIndex] + 1;
+    return true;
+}
+
 void encryptAnwser(ChaChaPoly *cipher, byte *output, byte *plaintext, size_t size)
 {
     byte cipherText[size];
     byte nonce[NONCE_SIZE];
     byte tag[TAG_SIZE];
-    ECCX08.random(nonce, NONCE_SIZE);
-
+    // Gets nonce from counter
+    getNonce(nonce);
     cipher->clear();
     if (!cipher->setKey(key, HASH_SIZE))
     {
