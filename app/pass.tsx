@@ -50,7 +50,7 @@ export default function PassScreen({ SetEnc }:PassProps) {
                 const secretBuff = cryptBuffer.from(SecretAsAscii)
                 const key = await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, secretBuff)
                 try {
-                  const resp = await SendMessage(ip as string, "Check", key)
+                  const resp = await SendMessage(ip as string, "Ch", key)
                   if (resp !== 'ok') {
                     setLoading(false)
                     setErrMessage('Wrong pass. Sorry')

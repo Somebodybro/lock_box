@@ -273,7 +273,7 @@ void printWEB()
         // Serial.println(messageStr);
         Serial.print("message: ");
         Serial.println(message);
-        if (message.startsWith("Check"))
+        if (message.startsWith("Ch"))
         {
             SendOk();
         }
@@ -282,13 +282,13 @@ void printWEB()
             ledOn();
             SendOk();
         }
-        if (message.startsWith("Off"))
+        if (message.startsWith("Of"))
         {
             ledOff();
             SendOk();
         }
 
-        if (message.startsWith("CPass"))
+        if (message.startsWith("CP"))
         {
             // We want a secret at least 15 chars for entropy
             if (message.length() < 15)

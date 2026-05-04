@@ -43,7 +43,7 @@ export default function MainScreen({ SetEnc, EncKey }:MainProps) {
         <ThemedView style={styles.stepContainer}>
             <TouchableOpacity style={styles.mainButtonStyle} onPress={async () =>{
                 try {
-                    await SendMessage(ip as string, "Off", cntxt.encKey)
+                    await SendMessage(ip as string, "Of", cntxt.encKey)
                 } catch {
                     SecureStore.deleteItemAsync(IpKey)
                     cntxt.setEncKey(new ArrayBuffer)
