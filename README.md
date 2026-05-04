@@ -32,9 +32,6 @@ to fix. 1. I am using a simple sha-256 hash for deriving a key from a password w
 _no salt_ bum bum bummm. This could be easily fixed, with time... That I don't have before
 the deadline. If I were to do it correctly I would use something like argon2id to derive the key with a salt that one could get unencrypted from the device.
 
-Then there is key rotation. While unlikely that one could send enough messages to approach a birthday limit on such a simple app, it is still technically feasible with automation.
-If this was to be actually secure, there would need to be regular key rotation, which is trivial to implement... With time. Honestly it would even suffice to change to the extended nonce variant of chacha20-poly1305, but... That was not implemented in the library and once again, no time.
-
 ## The crypto library
 [The library](https://github.com/rweather/arduinolibs/) is the rweather arduinolibs
 library. I added their license just in case, but the reason why I'm committing it is because
