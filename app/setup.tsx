@@ -68,7 +68,7 @@ export default function SetupScreen() {
                 }
                 const secretBuff = cryptBuffer.from(SecretAsAscii)
                 const key = await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, secretBuff)
-                const res = await SendMessage(ip, "Check", key)
+                const res = await SendMessage(ip, "Ch", key)
                 if(res === 'ok') {
                   SetPassMode(true)
                 } else {
